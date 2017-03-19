@@ -80,6 +80,7 @@ def Buscar_tvbd(nombre):
     for show_encontrado in Listado_tv:
         #        print(show_encontrado, show_encontrado.externals['thetvdb'])
         tbdbexiste = show_encontrado.externals['thetvdb']
+        print (tbdbexiste)
         if tbdbexiste is not None:
             nuevas.append(show_encontrado.externals)
             imagenes.append(show_encontrado.image)
@@ -94,7 +95,10 @@ def Buscar_tvbd(nombre):
 def Bajar_tv_ya(ya):
     print(ya[0])
     indice = Listado_encontrado.index(0)
-    nombre = Listado_encontrado.get(Listado_encontrado.index(0))
+    nombre1 = Listado_encontrado.get(Listado_encontrado.index(0))
+    # -- verificar si el nombre se puede escribir en la carpeta
+    # retirar caracteres \ / ? : * " > < | -- #
+    nombre = caracteres(nombre1)
     anterior_nombre = SerieElegida.get()
     Raiz = Variablestring.get()
     os.rename(Raiz + "/" + anterior_nombre, Raiz + "/" + nombre)
@@ -112,13 +116,16 @@ def Bajar_tv():
     global nuevas
     if Listado_encontrado.curselection() != ():
         indice = Listado_encontrado.index(Listado_encontrado.curselection())
-        nombre = Listado_encontrado.get(Listado_encontrado.curselection())
+        nombre1 = Listado_encontrado.get(Listado_encontrado.curselection())
+    # -- verificar si el nombre se puede escribir en la carpeta
+    # retirar caracteres \ / ? : * " > < | -- #
+        nombre = caracteres(nombre1)
         anterior_nombre = SerieElegida.get()
         Raiz = Variablestring.get()
         # renombro el directorio para que sea igual a la serie
         os.rename(Raiz + "/" + anterior_nombre, Raiz + "/" + nombre)
-        tvdb = str(nuevas[indice])
-        print(tvdb)
+        # busca la caratula --#
+        tvdb = (nuevas[indice])
         Buscar_fanart(tvdb, nombre)
         L_a = Listado_Series.get('end')
         if L_a != anterior_nombre:
@@ -130,9 +137,11 @@ def Bajar_tv():
 
 
 def Buscar_fanart(tvdb, nombre):
-    direccion = fanartv + tvdb + "?api_key=" + api_key
+    print str(tvdb['thetvdb'])
+    jsontvdb = str(tvdb['thetvdb'])
+    direccion = fanartv + jsontvdb + "?api_key=" + api_key
     urllib.urlretrieve(direccion, nombre + ".json")
-
+    print("baje json " + nombre)
 # --- Cuando termine de ver todos los directorios ---#
 
 
@@ -144,11 +153,13 @@ def Frenarapp():
     BarraEstado.config(text="OK")
     Variablestring.set("")
 
+
 def Imagen_ver():
     global imagenes
     if Listado_encontrado.curselection() != ():
         indice = Listado_encontrado.index(Listado_encontrado.curselection())
         img = str(imagenes[indice]['medium'])
+        print("bajo imagen")
         print(img)
         urllib.urlretrieve(img, "1.jpg")
         ima = Image.open("1.jpg")
@@ -156,6 +167,15 @@ def Imagen_ver():
         logo.config(image=tkimagenes)
         logo.image = tkimagenes
         Mven.update()
+
+
+def caracteres(azul):
+    # -- ver esto para cambiar caracteres de las carpetas
+    # que no se pueden escribir -- #
+    nom_serie = azul.translate(None, "\,/,?,:,*,>,<,|")
+    print nom_serie
+    return nom_serie
+
 
 # --- Ventana Principal ---#
 
@@ -179,7 +199,7 @@ AyudaMenu.add_command(label="Acerca de...", command=Vacerca)
 # frame contiene boton buscar y label raiz
 Frame_superior = tk.Frame(Mven)
 
-# frame contiene los listbox y botones 
+# frame contiene los listbox y botones
 Frame_Medio = tk.Frame(Mven)
 
 # --- Boton para comenzar la Busqueda ---#
